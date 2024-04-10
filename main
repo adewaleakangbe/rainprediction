@@ -1,0 +1,50 @@
+% % load the data from the four different stations
+% data1 = readtable('station1.xls');
+% data2 = readtable('station2.xls');
+% data3 = readtable('station3.xls');
+% data4 = readtable('station4.xls');
+
+% merge the data from the four stations into one dataset
+Data = [station1; station2; station3; station4];
+
+% preprocess the data by removing any missing values
+Data = rmmissing(data);
+
+% split the data into training and testing sets
+Training_idx = randperm(size(data,1),round(0.8*size(data,1)));
+Training_data = data(training_idx,:);
+Testing_data = data(setdiff(1:size(data,1),training_idx),:);
+
+% define the predictors and response variable
+Predictors = [data(:,2),data(:,3),data(:,4)];
+Year = data(:,2);
+Month = data(:,3);
+Day = data(:,4);
+
+Response = data(:,12);
+%  cartegoricalvar = [data(:,2),data(:,4)];
+%  duration = data(:,12);
+%  amount= data(:,13);
+
+% train a machine learning model on the training data
+Tbl = table(year,month,day,response,'variablenames',{'year','month','day','response'});
+Model = fitlm(tbl,'response~year+month');
+% model = fitlm(training_data,'interactions',response,'weight',predictors,'rainfall~duration+amount');
+
+% mdl = fitlm(hospital,'interactions','responsevar','weight',...
+%     'predictorvars',{'sex','age','smoker'},...
+%     'categoricalvar',{'sex','smoker'})
+
+% use the trained model to make predictions on the testing data
+Predictions = predict(model,predictors);
+
+% evaluate the performance of the model
+Rmse = sqrt(mean(response-predictions).^2);
+Mae = mean(abs(response-predictions));
+R2 = corr(response,predictions)^2;
+
+% plot the predicted vs. Actual rainfall values
+Scatter(predictions,response,'filled');
+Xlabel('predicted rainfall');
+Ylabel('actual rainfall');
+Title(sprintf('rmse=%.2f, mae=%.2f, r^2=%.2f',rmse,mae,r2));
